@@ -21,6 +21,23 @@ A comprehensive web-based system for diabetes risk assessment and prediction usi
   - Risk factor identification
   - Historical assessment tracking
 
+## Screenshots
+
+### Login Page
+![Login Page](screenshots/login-page.png)
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Assessment Form
+![Assessment Form](screenshots/assessment-form.png)
+
+### Results Page
+![Results Page](screenshots/results.png)
+
+### Admin Panel
+![Admin Panel](screenshots/admin-panel.png)
+
 ## Technical Stack
 
 - **Backend**: Django 4.0.4
