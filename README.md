@@ -23,20 +23,19 @@ A comprehensive web-based system for diabetes risk assessment and prediction usi
 
 ## Screenshots
 
-### Login Page
-![Login Page](screenshots/login-page.png)
+### Admin Dashboard
+![Admin Dashboard](screenshots/Admin%20dashboard.png)
 
-### Dashboard
-![Dashboard](screenshots/dashboard.png)
+### Assessment Forms
+![Assessment Form 1](screenshots/Assessment%20form%201.png)
+![Assessment Form 2](screenshots/Assessment%20form%202.png)
 
-### Assessment Form
-![Assessment Form](screenshots/assessment-form.png)
+### Patient Management
+![Patients of a Doctor](screenshots/patients%20of%20a%20doctor.png)
 
-### Results Page
-![Results Page](screenshots/results.png)
-
-### Admin Panel
-![Admin Panel](screenshots/admin-panel.png)
+### Assessment History
+![Assessment History](screenshots/assessment%20history%20of%20patient.png)
+![Detailed History](screenshots/detail%20history.png)
 
 ## Technical Stack
 
