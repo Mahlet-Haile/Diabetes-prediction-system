@@ -1,0 +1,467 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}NHANES Diabetes Assessment - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm bg-diabetes text-white">
+            <div class="card-body">
+                <h2 class="card-title">NHANES Diabetes Risk Assessment</h2>
+                <p class="card-text">This assessment form uses the National Health and Nutrition Examination Survey (NHANES) dataset for accurate diabetes risk prediction.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary-custom text-white">
+                <h4 class="mb-0">NHANES Assessment Form</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'diabetes:nhanes_assessment_form' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Patient Information Section -->
+                    <div class="row mb-4 patient-section bg-light p-3 rounded">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Patient Information</h5>
+                            <p class="text-muted small">Select an existing patient or enter a new patient's name.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.patient_selection.id_for_label }}" class="form-label">Select Existing Patient:</label>
+                                {{ form.patient_selection }}
+                                {% if form.patient_selection.errors %}
+                                    <div class="text-danger">{{ form.patient_selection.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.new_patient_name.id_for_label }}" class="form-label">Or Enter New Patient Name:</label>
+                                {{ form.new_patient_name }}
+                                {% if form.new_patient_name.errors %}
+                                    <div class="text-danger">{{ form.new_patient_name.errors }}</div>
+                                {% endif %}
+                                <div class="form-text text-muted">New patients will automatically be assigned an ID</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Demographics Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Demographics</h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}:</label>
+                                {{ form.gender }}
+                                {% if form.gender.errors %}
+                                    <div class="text-danger">{{ form.gender.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.age.id_for_label }}" class="form-label">{{ form.age.label }}:</label>
+                                {{ form.age }}
+                                {% if form.age.errors %}
+                                    <div class="text-danger">{{ form.age.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Anthropometrics Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Anthropometrics</h5>
+                            <p class="text-muted small">Physical measurements used by the NHANES model.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.height.id_for_label }}" class="form-label">Height:</label>
+                                {{ form.height }}
+                                <div class="form-text text-muted">{{ form.height.help_text }}</div>
+                                {% if form.height.errors %}
+                                    <div class="text-danger">{{ form.height.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.weight.id_for_label }}" class="form-label">Weight:</label>
+                                {{ form.weight }}
+                                <div class="form-text text-muted">{{ form.weight.help_text }}</div>
+                                {% if form.weight.errors %}
+                                    <div class="text-danger">{{ form.weight.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Blood Pressure Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Blood Pressure</h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.blood_pressure_systolic.id_for_label }}" class="form-label">{{ form.blood_pressure_systolic.label }}:</label>
+                                {{ form.blood_pressure_systolic }}
+                                <div class="form-text text-muted">{{ form.blood_pressure_systolic.help_text }}</div>
+                                {% if form.blood_pressure_systolic.errors %}
+                                    <div class="text-danger">{{ form.blood_pressure_systolic.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.blood_pressure_diastolic.id_for_label }}" class="form-label">{{ form.blood_pressure_diastolic.label }}:</label>
+                                {{ form.blood_pressure_diastolic }}
+                                <div class="form-text text-muted">{{ form.blood_pressure_diastolic.help_text }}</div>
+                                {% if form.blood_pressure_diastolic.errors %}
+                                    <div class="text-danger">{{ form.blood_pressure_diastolic.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Glucose Measurements Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Glucose Measurements</h5>
+                            <p class="text-muted small">These are key indicators for diabetes prediction in the NHANES model.</p>
+                        </div>
+                        
+                        <!-- Random glucose field removed as it's not in the NHANES dataset -->
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.fasting_glucose.id_for_label }}" class="form-label">{{ form.fasting_glucose.label }}:</label>
+                                {{ form.fasting_glucose }}
+                                <div class="form-text text-muted">{{ form.fasting_glucose.help_text }}</div>
+                                {% if form.fasting_glucose.errors %}
+                                    <div class="text-danger">{{ form.fasting_glucose.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.hba1c.id_for_label }}" class="form-label">{{ form.hba1c.label }}:</label>
+                                {{ form.hba1c }}
+                                <div class="form-text text-muted">{{ form.hba1c.help_text }}</div>
+                                {% if form.hba1c.errors %}
+                                    <div class="text-danger">{{ form.hba1c.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cholesterol Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Cholesterol</h5>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="{{ form.cholesterol.id_for_label }}" class="form-label">{{ form.cholesterol.label }}:</label>
+                                {{ form.cholesterol }}
+                                {% if form.cholesterol.errors %}
+                                    <div class="text-danger">{{ form.cholesterol.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Factors Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">NHANES Risk Factors</h5>
+                            <p class="text-muted small">Medical conditions that increase diabetes risk according to NHANES data.</p>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.smoking_history.id_for_label }}" class="form-label">{{ form.smoking_history.label }}:</label>
+                                {{ form.smoking_history }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-check-label">
+                                    {{ form.hypertension }}
+                                    {{ form.hypertension.label }}
+                                </label>
+                                <div class="form-text text-muted small">{{ form.hypertension.help_text }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-check-label">
+                                    {{ form.heart_disease }}
+                                    {{ form.heart_disease.label }}
+                                </label>
+                                <div class="form-text text-muted small">{{ form.heart_disease.help_text }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Symptoms Section -->
+                    <div class="row mb-4 symptom-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Diabetes Symptoms</h5>
+                            <p class="text-muted small">Check any symptoms you are currently experiencing.</p>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                {{ form.polyuria }}
+                                <label class="form-check-label" for="{{ form.polyuria.id_for_label }}">
+                                    {{ form.polyuria.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.polydipsia }}
+                                <label class="form-check-label" for="{{ form.polydipsia.id_for_label }}">
+                                    {{ form.polydipsia.label }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                {{ form.polyphagia }}
+                                <label class="form-check-label" for="{{ form.polyphagia.id_for_label }}">
+                                    {{ form.polyphagia.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.weight_loss }}
+                                <label class="form-check-label" for="{{ form.weight_loss.id_for_label }}">
+                                    {{ form.weight_loss.label }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                {{ form.fatigue }}
+                                <label class="form-check-label" for="{{ form.fatigue.id_for_label }}">
+                                    {{ form.fatigue.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.blurred_vision }}
+                                <label class="form-check-label" for="{{ form.blurred_vision.id_for_label }}">
+                                    {{ form.blurred_vision.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.slow_healing }}
+                                <label class="form-check-label" for="{{ form.slow_healing.id_for_label }}">
+                                    {{ form.slow_healing.label }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.tingling }}
+                                <label class="form-check-label" for="{{ form.tingling.id_for_label }}">
+                                    {{ form.tingling.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'diabetes:dashboard' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Submit NHANES Assessment</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Custom validation for age, height, and weight fields
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the form element
+        const form = document.querySelector('form');
+        
+        // Add validation for specific fields
+        const ageField = document.getElementById('{{ form.age.id_for_label }}');
+        const heightField = document.getElementById('{{ form.height.id_for_label }}');
+        const weightField = document.getElementById('{{ form.weight.id_for_label }}');
+        
+        // Create validation message containers
+        if (ageField) {
+            const ageError = document.createElement('div');
+            ageError.className = 'invalid-feedback';
+            ageError.textContent = 'Age must be between 18 and 85 years';
+            ageField.parentNode.appendChild(ageError);
+            
+            ageField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 18 || value > 85) {
+                    this.classList.add('is-invalid');
+                    ageError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    ageError.style.display = 'none';
+                }
+            });
+        }
+        
+        if (heightField) {
+            const heightError = document.createElement('div');
+            heightError.className = 'invalid-feedback';
+            heightError.textContent = 'Height must be between 120 and 250 cm';
+            heightField.parentNode.appendChild(heightError);
+            
+            heightField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 120 || value > 250) {
+                    this.classList.add('is-invalid');
+                    heightError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    heightError.style.display = 'none';
+                }
+            });
+        }
+        
+        if (weightField) {
+            const weightError = document.createElement('div');
+            weightError.className = 'invalid-feedback';
+            weightError.textContent = 'Weight must be between 30 and 300 kg';
+            weightField.parentNode.appendChild(weightError);
+            
+            weightField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 30 || value > 300) {
+                    this.classList.add('is-invalid');
+                    weightError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    weightError.style.display = 'none';
+                }
+            });
+        }
+        
+        // Add form submission validation
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Validate age
+            if (ageField) {
+                const ageValue = parseFloat(ageField.value);
+                if (isNaN(ageValue) || ageValue < 18 || ageValue > 85) {
+                    ageField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate height
+            if (heightField) {
+                const heightValue = parseFloat(heightField.value);
+                if (isNaN(heightValue) || heightValue < 120 || heightValue > 250) {
+                    heightField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate weight
+            if (weightField) {
+                const weightValue = parseFloat(weightField.value);
+                if (isNaN(weightValue) || weightValue < 30 || weightValue > 300) {
+                    weightField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                // Scroll to first invalid field
+                const firstInvalid = document.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the select and input elements
+        const patientSelect = document.getElementById('{{ form.patient_selection.id_for_label }}');
+        const newPatientInput = document.getElementById('{{ form.new_patient_name.id_for_label }}');
+        
+        // Function to fetch patient data for auto-fill
+        function fetchPatientData(patientId) {
+            if (!patientId) return;
+            
+            fetch(`/diabetes/get_patient_data/${patientId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Auto-fill form with patient data if available
+                        if (data.gender) document.getElementById('{{ form.gender.id_for_label }}').value = data.gender;
+                        if (data.age) document.getElementById('{{ form.age.id_for_label }}').value = data.age;
+                        // Add more fields as needed
+                    }
+                })
+                .catch(error => console.error('Error fetching patient data:', error));
+        }
+        
+        // Listen for changes on the patient selection dropdown
+        patientSelect.addEventListener('change', function() {
+            const selectedPatientId = this.value;
+            
+            // Clear the new patient input if a patient is selected
+            if (selectedPatientId) {
+                newPatientInput.value = '';
+                fetchPatientData(selectedPatientId);
+            }
+        });
+        
+        newPatientInput.addEventListener('input', function() {
+            // If a new patient name is being entered, reset the existing patient selection
+            if (this.value.trim()) {
+                patientSelect.value = '';
+            }
+        });
+    });
+</script>
+{% endblock %}

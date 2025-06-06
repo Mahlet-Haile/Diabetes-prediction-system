@@ -1,0 +1,182 @@
+{% extends 'DiabetesPrediction/base.html' %}
+{% load static %}
+
+{% block title %}NHANES Dataset Statistics{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">NHANES Dataset Statistics</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> About This Data</h5>
+                        <p>This page shows statistics for the synthetic NHANES-like dataset used for diabetes prediction. The dataset is designed to reflect realistic distributions of diabetes and prediabetes in the population.</p>
+                    </div>
+
+                    <!-- Dataset Overview -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Dataset Overview</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card mb-3">
+                                                <div class="card-body text-center">
+                                                    <h2 class="display-4">{{ total_samples }}</h2>
+                                                    <p class="lead">Total Samples</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5>Diabetes Status Distribution</h5>
+                                                    <div class="progress mb-2" style="height: 25px">
+                                                        <div class="progress-bar bg-danger" style="width: {{ diabetes_percent }}%">
+                                                            {{ diabetes_percent }}% Diabetes ({{ diabetes_count }})
+                                                        </div>
+                                                    </div>
+                                                    <div class="progress mb-2" style="height: 25px">
+                                                        <div class="progress-bar bg-warning" style="width: {{ prediabetes_percent }}%">
+                                                            {{ prediabetes_percent }}% Prediabetes ({{ prediabetes_count }})
+                                                        </div>
+                                                    </div>
+                                                    <div class="progress" style="height: 25px">
+                                                        <div class="progress-bar bg-success" style="width: {{ normal_percent }}%">
+                                                            {{ normal_percent }}% Normal ({{ normal_count }})
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Demographics -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Gender Distribution</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="progress mb-2" style="height: 30px;">
+                                        <div class="progress-bar bg-primary" style="width: {{ male_percent }}%;">
+                                            {{ male_percent }}% Male ({{ male_count }})
+                                        </div>
+                                    </div>
+                                    <div class="progress" style="height: 30px;">
+                                        <div class="progress-bar bg-info" style="width: {{ female_percent }}%;">
+                                            {{ female_percent }}% Female ({{ female_count }})
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Age Distribution</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th>Mean Age:</th>
+                                            <td>{{ age_mean }} years</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Median Age:</th>
+                                            <td>{{ age_median }} years</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Age Range:</th>
+                                            <td>{{ age_min }} - {{ age_max }} years</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clinical Measurements -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Clinical Measurements (Averages)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="card text-center mb-3">
+                                                <div class="card-body">
+                                                    <h2>{{ bmi_mean }}</h2>
+                                                    <p>Average BMI</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card text-center mb-3">
+                                                <div class="card-body">
+                                                    <h2>{{ glucose_mean }}</h2>
+                                                    <p>Average Fasting Glucose (mg/dL)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card text-center mb-3">
+                                                <div class="card-body">
+                                                    <h2>{{ total_samples }}</h2>
+                                                    <p>Total Features: 49</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Training -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Model Training</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>This dataset can be used to train two prediction models:</p>
+                                    <ul>
+                                        <li><strong>Diabetes Detection Model:</strong> Predicts whether a patient has diabetes</li>
+                                        <li><strong>Diabetes Type Model:</strong> Predicts the specific type of diabetes (none, prediabetes, type1, type2)</li>
+                                    </ul>
+                                    <div class="text-center mt-3">
+                                        <a href="{% url 'diabetes:train_nhanes_model' %}" class="btn btn-success">
+                                            <i class="fas fa-brain"></i> Train Models
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'diabetes:nhanes_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to NHANES Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

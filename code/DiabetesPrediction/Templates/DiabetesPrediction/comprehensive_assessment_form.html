@@ -1,0 +1,898 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Diabetes Risk Assessment - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm bg-diabetes text-white">
+            <div class="card-body">
+                <h2 class="card-title">Diabetes Risk Assessment</h2>
+                <p class="card-text">Clinical assessment tool using NHANES data and expert knowledge to evaluate diabetes risk through measured values and patient symptoms.</p>
+                {% if request.session.use_nhanes_model %}
+                <div class="mt-3 badge bg-info p-2">
+                    <i class="fas fa-info-circle"></i> Using NHANES model for enhanced prediction accuracy
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary-custom text-white">
+                <h4 class="mb-0">Assessment Form</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'diabetes:assessment_form' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Patient Information Section -->
+                    <div class="row mb-4 patient-section bg-light p-3 rounded">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Patient Information</h5>
+                            <p class="text-muted small">Select an existing patient or enter a new patient's name.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.patient_selection.id_for_label }}" class="form-label">Select Existing Patient:</label>
+                                {{ form.patient_selection }}
+                                {% if form.patient_selection.errors %}
+                                    <div class="text-danger">{{ form.patient_selection.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Or Enter New Patient:</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.new_patient_name.id_for_label }}" class="form-label">First Name:</label>
+                                        {{ form.new_patient_name }}
+                                        {% if form.new_patient_name.errors %}
+                                            <div class="text-danger">{{ form.new_patient_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.new_patient_last_name.id_for_label }}" class="form-label">Last Name:</label>
+                                        {{ form.new_patient_last_name }}
+                                        {% if form.new_patient_last_name.errors %}
+                                            <div class="text-danger">{{ form.new_patient_last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-text text-muted mt-2">New patients will automatically be assigned an ID</div>
+                                <div id="duplicate-patient-warning" class="alert alert-warning mt-2" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i> Warning: This patient name may already exist. Please check the patient selection dropdown first.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Demographics Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Demographics</h5>
+                            <p class="text-muted small">Basic demographic information required for risk stratification.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}:</label>
+                                {{ form.gender }}
+                                {% if form.gender.errors %}
+                                    <div class="text-danger">{{ form.gender.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.age.id_for_label }}" class="form-label">{{ form.age.label }}:</label>
+                                {{ form.age }}
+                                {% if form.age.errors %}
+                                    <div class="text-danger">{{ form.age.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Anthropometrics Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Anthropometrics</h5>
+                            <p class="text-muted small">Body measurements used to calculate BMI and assess obesity-related risk.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.height.id_for_label }}" class="form-label">{{ form.height.label }}:</label>
+                                {{ form.height }}
+                                <small class="form-text text-muted">{{ form.height.help_text }}</small>
+                                {% if form.height.errors %}
+                                    <div class="text-danger">{{ form.height.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.weight.id_for_label }}" class="form-label">{{ form.weight.label }}:</label>
+                                {{ form.weight }}
+                                <small class="form-text text-muted">{{ form.weight.help_text }}</small>
+                                {% if form.weight.errors %}
+                                    <div class="text-danger">{{ form.weight.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Blood Pressure Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Blood Pressure</h5>
+                            <p class="text-muted small">Hypertension is a significant risk factor for diabetes and its complications.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.blood_pressure_systolic.id_for_label }}" class="form-label">{{ form.blood_pressure_systolic.label }}:</label>
+                                {{ form.blood_pressure_systolic }}
+                                <small class="form-text text-muted">{{ form.blood_pressure_systolic.help_text }}</small>
+                                {% if form.blood_pressure_systolic.errors %}
+                                    <div class="text-danger">{{ form.blood_pressure_systolic.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.blood_pressure_diastolic.id_for_label }}" class="form-label">{{ form.blood_pressure_diastolic.label }}:</label>
+                                {{ form.blood_pressure_diastolic }}
+                                <small class="form-text text-muted">{{ form.blood_pressure_diastolic.help_text }}</small>
+                                {% if form.blood_pressure_diastolic.errors %}
+                                    <div class="text-danger">{{ form.blood_pressure_diastolic.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Glucose Measurements Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Glucose Measurements</h5>
+                            <p class="text-muted small">Direct indicators of glycemic control and diabetes status.</p>
+                        </div>
+                        
+                        <!-- Random glucose field removed as it's not in the NHANES dataset -->
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.fasting_glucose.id_for_label }}" class="form-label">{{ form.fasting_glucose.label }}:</label>
+                                {{ form.fasting_glucose }}
+                                <small class="form-text text-muted">{{ form.fasting_glucose.help_text }}</small>
+                                {% if form.fasting_glucose.errors %}
+                                    <div class="text-danger">{{ form.fasting_glucose.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.hba1c.id_for_label }}" class="form-label">{{ form.hba1c.label }}:</label>
+                                {{ form.hba1c }}
+                                <small class="form-text text-muted">{{ form.hba1c.help_text }}</small>
+                                {% if form.hba1c.errors %}
+                                    <div class="text-danger">{{ form.hba1c.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lipid Profile Section -->
+                    <div class="row mb-4 measured-section">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Lipid Profile</h5>
+                            <p class="text-muted small">Comprehensive lipid measurements to assess metabolic health and cardiovascular risk.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.cholesterol.id_for_label }}" class="form-label">{{ form.cholesterol.label }}:</label>
+                                {{ form.cholesterol }}
+                                {% if form.cholesterol.errors %}
+                                    <div class="text-danger">{{ form.cholesterol.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.hdl_cholesterol.id_for_label }}" class="form-label">{{ form.hdl_cholesterol.label }}:</label>
+                                {{ form.hdl_cholesterol }}
+                                <small class="form-text text-muted">{{ form.hdl_cholesterol.help_text }}</small>
+                                {% if form.hdl_cholesterol.errors %}
+                                    <div class="text-danger">{{ form.hdl_cholesterol.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mt-3">
+                            <div class="form-group">
+                                <label for="{{ form.ldl_cholesterol.id_for_label }}" class="form-label">{{ form.ldl_cholesterol.label }}:</label>
+                                {{ form.ldl_cholesterol }}
+                                <small class="form-text text-muted">{{ form.ldl_cholesterol.help_text }}</small>
+                                {% if form.ldl_cholesterol.errors %}
+                                    <div class="text-danger">{{ form.ldl_cholesterol.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mt-3">
+                            <div class="form-group">
+                                <label for="{{ form.triglycerides.id_for_label }}" class="form-label">{{ form.triglycerides.label }}:</label>
+                                {{ form.triglycerides }}
+                                <small class="form-text text-muted">{{ form.triglycerides.help_text }}</small>
+                                {% if form.triglycerides.errors %}
+                                    <div class="text-danger">{{ form.triglycerides.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Medical History Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Medical History</h5>
+                            <p class="text-muted small">Pre-existing conditions that affect diabetes risk assessment.</p>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.smoking_history.id_for_label }}" class="form-label">{{ form.smoking_history.label }}:</label>
+                                {{ form.smoking_history }}
+                                {% if form.smoking_history.errors %}
+                                    <div class="text-danger">{{ form.smoking_history.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                {{ form.hypertension }}
+                                <label class="form-check-label" for="{{ form.hypertension.id_for_label }}">
+                                    {{ form.hypertension.label }}
+                                </label>
+                                <small class="d-block form-text text-muted">{{ form.hypertension.help_text }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-check mb-3">
+                                {{ form.heart_disease }}
+                                <label class="form-check-label" for="{{ form.heart_disease.id_for_label }}">
+                                    {{ form.heart_disease.label }}
+                                </label>
+                                <small class="d-block form-text text-muted">{{ form.heart_disease.help_text }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mt-3">
+                            <div class="form-check mb-3">
+                                {{ form.family_history }}
+                                <label class="form-check-label" for="{{ form.family_history.id_for_label }}">
+                                    {{ form.family_history.label }}
+                                </label>
+                                <small class="d-block form-text text-muted">Parents, siblings, or children with diabetes</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Primary Symptoms Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Primary Diabetes Symptoms</h5>
+                            <p class="text-muted small">Classical symptoms associated with diabetes onset.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.polyuria }}
+                                <label class="form-check-label" for="{{ form.polyuria.id_for_label }}">
+                                    {{ form.polyuria.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.polydipsia }}
+                                <label class="form-check-label" for="{{ form.polydipsia.id_for_label }}">
+                                    {{ form.polydipsia.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.polyphagia }}
+                                <label class="form-check-label" for="{{ form.polyphagia.id_for_label }}">
+                                    {{ form.polyphagia.label }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.weight_loss }}
+                                <label class="form-check-label" for="{{ form.weight_loss.id_for_label }}">
+                                    {{ form.weight_loss.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.fatigue }}
+                                <label class="form-check-label" for="{{ form.fatigue.id_for_label }}">
+                                    {{ form.fatigue.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.blurred_vision }}
+                                <label class="form-check-label" for="{{ form.blurred_vision.id_for_label }}">
+                                    {{ form.blurred_vision.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Secondary Symptoms Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="border-bottom pb-2">Secondary Symptoms & Complications</h5>
+                            <p class="text-muted small">Additional symptoms that may indicate diabetes or its complications.</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.slow_healing }}
+                                <label class="form-check-label" for="{{ form.slow_healing.id_for_label }}">
+                                    {{ form.slow_healing.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.tingling }}
+                                <label class="form-check-label" for="{{ form.tingling.id_for_label }}">
+                                    {{ form.tingling.label }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.skin_darkening }}
+                                <label class="form-check-label" for="{{ form.skin_darkening.id_for_label }}">
+                                    {{ form.skin_darkening.label }}
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.frequent_infections }}
+                                <label class="form-check-label" for="{{ form.frequent_infections.id_for_label }}">
+                                    {{ form.frequent_infections.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button Section -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'diabetes:dashboard' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Custom validation for age, height, and weight fields
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the form element
+        const form = document.querySelector('form');
+        
+        // Add validation for specific fields
+        const ageField = document.getElementById('{{ form.age.id_for_label }}');
+        const heightField = document.getElementById('{{ form.height.id_for_label }}');
+        const weightField = document.getElementById('{{ form.weight.id_for_label }}');
+        
+        // Blood pressure fields
+        const systolicField = document.getElementById('{{ form.blood_pressure_systolic.id_for_label }}');
+        const diastolicField = document.getElementById('{{ form.blood_pressure_diastolic.id_for_label }}');
+        
+        // Glucose measurement fields
+        const fastingGlucoseField = document.getElementById('{{ form.fasting_glucose.id_for_label }}');
+        const hba1cField = document.getElementById('{{ form.hba1c.id_for_label }}');
+        
+        // Lipid profile fields
+        const cholesterolField = document.getElementById('{{ form.cholesterol.id_for_label }}');
+        const hdlField = document.getElementById('{{ form.hdl_cholesterol.id_for_label }}');
+        const ldlField = document.getElementById('{{ form.ldl_cholesterol.id_for_label }}');
+        const triglyceridesField = document.getElementById('{{ form.triglycerides.id_for_label }}');
+        
+        // Create validation message containers
+        if (ageField) {
+            const ageError = document.createElement('div');
+            ageError.className = 'invalid-feedback';
+            ageError.textContent = 'Age must be between 18 and 85 years';
+            ageField.parentNode.appendChild(ageError);
+            
+            ageField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 18 || value > 85) {
+                    this.classList.add('is-invalid');
+                    ageError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    ageError.style.display = 'none';
+                }
+            });
+        }
+        
+        if (heightField) {
+            const heightError = document.createElement('div');
+            heightError.className = 'invalid-feedback';
+            heightError.textContent = 'Height must be between 120 and 250 cm';
+            heightField.parentNode.appendChild(heightError);
+            
+            heightField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 120 || value > 250) {
+                    this.classList.add('is-invalid');
+                    heightError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    heightError.style.display = 'none';
+                }
+            });
+        }
+        
+        if (weightField) {
+            const weightError = document.createElement('div');
+            weightError.className = 'invalid-feedback';
+            weightError.textContent = 'Weight must be between 30 and 300 kg';
+            weightField.parentNode.appendChild(weightError);
+            
+            weightField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 30 || value > 300) {
+                    this.classList.add('is-invalid');
+                    weightError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    weightError.style.display = 'none';
+                }
+            });
+        }
+        
+        // HDL Cholesterol validation
+        if (hdlField) {
+            const hdlError = document.createElement('div');
+            hdlError.className = 'invalid-feedback';
+            hdlError.textContent = 'HDL cholesterol must be between 20 and 100 mg/dL';
+            hdlField.parentNode.appendChild(hdlError);
+            
+            hdlField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 20 || value > 100) {
+                    this.classList.add('is-invalid');
+                    hdlError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    hdlError.style.display = 'none';
+                }
+            });
+        }
+        
+        // LDL Cholesterol validation
+        if (ldlField) {
+            const ldlError = document.createElement('div');
+            ldlError.className = 'invalid-feedback';
+            ldlError.textContent = 'LDL cholesterol must be between 40 and 250 mg/dL';
+            ldlField.parentNode.appendChild(ldlError);
+            
+            ldlField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 40 || value > 250) {
+                    this.classList.add('is-invalid');
+                    ldlError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    ldlError.style.display = 'none';
+                }
+            });
+        }
+        
+        // Triglycerides validation
+        if (triglyceridesField) {
+            const trigError = document.createElement('div');
+            trigError.className = 'invalid-feedback';
+            trigError.textContent = 'Triglycerides must be between 50 and 1000 mg/dL';
+            triglyceridesField.parentNode.appendChild(trigError);
+            
+            triglyceridesField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 50 || value > 1000) {
+                    this.classList.add('is-invalid');
+                    trigError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    trigError.style.display = 'none';
+                }
+            });
+        }
+        
+        // Total Cholesterol validation
+        if (cholesterolField) {
+            const cholError = document.createElement('div');
+            cholError.className = 'invalid-feedback';
+            cholError.textContent = 'Total cholesterol must be between 100 and 400 mg/dL';
+            cholesterolField.parentNode.appendChild(cholError);
+            
+            cholesterolField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 100 || value > 400) {
+                    this.classList.add('is-invalid');
+                    cholError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    cholError.style.display = 'none';
+                }
+            });
+        }
+        
+        // Systolic Blood Pressure validation
+        if (systolicField) {
+            const sysError = document.createElement('div');
+            sysError.className = 'invalid-feedback';
+            sysError.textContent = 'Systolic blood pressure must be between 70 and 250 mmHg';
+            systolicField.parentNode.appendChild(sysError);
+            
+            systolicField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 70 || value > 250) {
+                    this.classList.add('is-invalid');
+                    sysError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    sysError.style.display = 'none';
+                }
+            });
+        }
+        
+        // Diastolic Blood Pressure validation
+        if (diastolicField) {
+            const diasError = document.createElement('div');
+            diasError.className = 'invalid-feedback';
+            diasError.textContent = 'Diastolic blood pressure must be between 40 and 150 mmHg';
+            diastolicField.parentNode.appendChild(diasError);
+            
+            diastolicField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 40 || value > 150) {
+                    this.classList.add('is-invalid');
+                    diasError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    diasError.style.display = 'none';
+                }
+            });
+        }
+        
+        // Fasting Glucose validation
+        if (fastingGlucoseField) {
+            const glucoseError = document.createElement('div');
+            glucoseError.className = 'invalid-feedback';
+            glucoseError.textContent = 'Fasting glucose must be between 50 and 500 mg/dL';
+            fastingGlucoseField.parentNode.appendChild(glucoseError);
+            
+            fastingGlucoseField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 50 || value > 500) {
+                    this.classList.add('is-invalid');
+                    glucoseError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    glucoseError.style.display = 'none';
+                }
+            });
+        }
+        
+        // HbA1c validation
+        if (hba1cField) {
+            const hba1cError = document.createElement('div');
+            hba1cError.className = 'invalid-feedback';
+            hba1cError.textContent = 'HbA1c must be between 4 and 14 %';
+            hba1cField.parentNode.appendChild(hba1cError);
+            
+            hba1cField.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value < 4 || value > 14) {
+                    this.classList.add('is-invalid');
+                    hba1cError.style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    hba1cError.style.display = 'none';
+                }
+            });
+        }
+        
+        // Add form submission validation
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Validate age
+            if (ageField) {
+                const ageValue = parseFloat(ageField.value);
+                if (isNaN(ageValue) || ageValue < 18 || ageValue > 85) {
+                    ageField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate height
+            if (heightField) {
+                const heightValue = parseFloat(heightField.value);
+                if (isNaN(heightValue) || heightValue < 120 || heightValue > 250) {
+                    heightField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate weight
+            if (weightField) {
+                const weightValue = parseFloat(weightField.value);
+                if (isNaN(weightValue) || weightValue < 30 || weightValue > 300) {
+                    weightField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate HDL cholesterol
+            if (hdlField && hdlField.value) {
+                const hdlValue = parseFloat(hdlField.value);
+                if (isNaN(hdlValue) || hdlValue < 20 || hdlValue > 100) {
+                    hdlField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate LDL cholesterol
+            if (ldlField && ldlField.value) {
+                const ldlValue = parseFloat(ldlField.value);
+                if (isNaN(ldlValue) || ldlValue < 40 || ldlValue > 250) {
+                    ldlField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate triglycerides
+            if (triglyceridesField && triglyceridesField.value) {
+                const trigValue = parseFloat(triglyceridesField.value);
+                if (isNaN(trigValue) || trigValue < 50 || trigValue > 1000) {
+                    triglyceridesField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate total cholesterol
+            if (cholesterolField && cholesterolField.value) {
+                const cholValue = parseFloat(cholesterolField.value);
+                if (isNaN(cholValue) || cholValue < 100 || cholValue > 400) {
+                    cholesterolField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate systolic blood pressure
+            if (systolicField && systolicField.value) {
+                const sysValue = parseFloat(systolicField.value);
+                if (isNaN(sysValue) || sysValue < 70 || sysValue > 250) {
+                    systolicField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate diastolic blood pressure
+            if (diastolicField && diastolicField.value) {
+                const diasValue = parseFloat(diastolicField.value);
+                if (isNaN(diasValue) || diasValue < 40 || diasValue > 150) {
+                    diastolicField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate fasting glucose
+            if (fastingGlucoseField && fastingGlucoseField.value) {
+                const glucoseValue = parseFloat(fastingGlucoseField.value);
+                if (isNaN(glucoseValue) || glucoseValue < 50 || glucoseValue > 500) {
+                    fastingGlucoseField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate HbA1c
+            if (hba1cField && hba1cField.value) {
+                const hba1cValue = parseFloat(hba1cField.value);
+                if (isNaN(hba1cValue) || hba1cValue < 4 || hba1cValue > 14) {
+                    hba1cField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                // Scroll to first invalid field
+                const firstInvalid = document.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const patientSelect = document.querySelector('select[name="patient_selection"]');
+        const newPatientFirstNameInput = document.querySelector('input[name="new_patient_name"]');
+        const newPatientLastNameInput = document.querySelector('input[name="new_patient_last_name"]');
+        const duplicateWarning = document.getElementById('duplicate-patient-warning');
+        const patientOptions = Array.from(patientSelect.options).map(option => option.text.toLowerCase());
+        
+        // Function to check for potential duplicate patients
+        function checkForDuplicates() {
+            const firstName = newPatientFirstNameInput.value.trim();
+            const lastName = newPatientLastNameInput.value.trim();
+            
+            if (firstName && lastName) {
+                const fullName = `${firstName} ${lastName}`.toLowerCase();
+                
+                // Check if this name exists in the patient dropdown
+                const potentialMatch = patientOptions.some(patientName => {
+                    return patientName.includes(fullName) || 
+                           (patientName.includes(firstName.toLowerCase()) && patientName.includes(lastName.toLowerCase()));
+                });
+                
+                if (potentialMatch) {
+                    duplicateWarning.style.display = 'block';
+                } else {
+                    duplicateWarning.style.display = 'none';
+                }
+            } else {
+                duplicateWarning.style.display = 'none';
+            }
+        }
+        
+        // Add input event listeners to both name fields
+        newPatientFirstNameInput.addEventListener('input', function() {
+            // If a new patient name is being entered, reset and disable the existing patient selection
+            if (this.value.trim() || newPatientLastNameInput.value.trim()) {
+                patientSelect.value = '';
+                patientSelect.setAttribute('disabled', 'disabled');
+                checkForDuplicates();
+            } else {
+                patientSelect.removeAttribute('disabled');
+                duplicateWarning.style.display = 'none';
+            }
+        });
+        
+        newPatientLastNameInput.addEventListener('input', function() {
+            // If a new patient name is being entered, reset and disable the existing patient selection
+            if (this.value.trim() || newPatientFirstNameInput.value.trim()) {
+                patientSelect.value = '';
+                patientSelect.setAttribute('disabled', 'disabled');
+                checkForDuplicates();
+            } else {
+                patientSelect.removeAttribute('disabled');
+                duplicateWarning.style.display = 'none';
+            }
+        });
+        
+        patientSelect.addEventListener('change', function() {
+            // If an existing patient is selected, disable the new patient name fields
+            if (this.value) {
+                newPatientFirstNameInput.value = '';
+                newPatientLastNameInput.value = '';
+                newPatientFirstNameInput.setAttribute('disabled', 'disabled');
+                newPatientLastNameInput.setAttribute('disabled', 'disabled');
+                duplicateWarning.style.display = 'none';
+                
+                // Auto-fill patient data from previous assessments
+                fetchPatientData(this.value);
+            } else {
+                newPatientFirstNameInput.removeAttribute('disabled');
+                newPatientLastNameInput.removeAttribute('disabled');
+            }
+        });
+        
+        // Function to fetch patient data for auto-fill
+        function fetchPatientData(patientId) {
+            console.log('Fetching patient data for ID:', patientId);
+            const url = `{% url 'diabetes:get_patient_data' %}?patient_id=${patientId}`;
+            console.log('Request URL:', url);
+            
+            fetch(url)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);
+                    
+                    if (data.success) {
+                        // Find gender field - try multiple selector methods
+                        let genderField = document.getElementById('id_gender_field');
+                        if (!genderField) {
+                            genderField = document.querySelector('select[name="gender"]');
+                        }
+                        if (!genderField) {
+                            // Try all selects to find one that looks like gender
+                            const selects = document.querySelectorAll('select');
+                            for (const select of selects) {
+                                if (select.name === 'gender' || select.id.includes('gender')) {
+                                    genderField = select;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        console.log('Gender field found:', genderField);
+                        if (genderField && data.gender) {
+                            console.log('Setting gender to:', data.gender);
+                            genderField.value = data.gender;
+                        }
+                        
+                        // Age field
+                        if (data.age) {
+                            let ageField = document.querySelector('input[name="age"]');
+                            if (ageField) {
+                                console.log('Setting age to:', data.age);
+                                ageField.value = data.age;
+                            }
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching patient data:', error));
+        }
+        
+        // Initialize on page load
+        if (patientSelect.value) {
+            newPatientFirstNameInput.value = '';
+            newPatientLastNameInput.value = '';
+            newPatientFirstNameInput.setAttribute('disabled', 'disabled');
+            newPatientLastNameInput.setAttribute('disabled', 'disabled');
+        } else if (newPatientFirstNameInput.value.trim() || newPatientLastNameInput.value.trim()) {
+            patientSelect.value = '';
+            patientSelect.setAttribute('disabled', 'disabled');
+            checkForDuplicates();
+        }
+        
+        // Form validation before submit
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            // Check if either an existing patient is selected or both first and last name are provided
+            if (!patientSelect.value && (!newPatientFirstNameInput.value.trim() || !newPatientLastNameInput.value.trim())) {
+                e.preventDefault();
+                alert('Please either select an existing patient or enter both first and last name for a new patient.');
+            }
+        });
+    });
+</script>
+{% endblock %}

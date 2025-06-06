@@ -1,0 +1,207 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Assessment History - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    {% if view_mode == 'patient_list' %}
+                        <h4 class="card-title mb-0">Your Patients</h4>
+                    {% else %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">Assessment History: {{ patient.full_name }}</h4>
+                            <a href="{% url 'diabetes:assessment_history' %}" class="btn btn-sm btn-light">Back to All Patients</a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if view_mode == 'patient_list' %}
+                        <!-- PATIENT LIST VIEW -->
+                        <!-- Search form for patient ID -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <form method="GET" action="{% url 'diabetes:assessment_history' %}" class="row g-3 align-items-center">
+                                    <div class="col-md-4">
+                                        <label for="search_patient_id" class="form-label">Search by Patient ID</label>
+                                        <input type="text" class="form-control" id="search_patient_id" name="search_patient_id" placeholder="Enter patient ID" value="{{ search_query }}">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button type="submit" class="btn btn-primary mb-2">Search</button>
+                                    </div>
+                                    {% if search_query %}
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <a href="{% url 'diabetes:assessment_history' %}" class="btn btn-outline-secondary mb-2">Clear Search</a>
+                                    </div>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                        
+                        {% if patients %}
+                            <p>Select a patient to view their assessment history.</p>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Patient ID</th>
+                                            <th>Name</th>
+                                            <th>Date Added</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for patient in patients %}
+                                        <tr>
+                                            <td>{{ patient.patient_id }}</td>
+                                            <td>{{ patient.full_name }}</td>
+                                            <td>{{ patient.date_added|date:"F d, Y" }}</td>
+                                            <td>
+                                                <a href="{% url 'diabetes:assessment_history' %}?patient_id={{ patient.patient_id }}" class="btn btn-sm btn-info">View History</a>
+                                                {% if user.role == 'DOCTOR' %}
+                                                <a href="{% url 'diabetes:assessment_form' %}" class="btn btn-sm btn-primary">New Assessment</a>
+                                                {% endif %}
+                                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deletePatientModal{{ patient.id }}">Delete Patient</button>
+                                                
+                                                <!-- Delete Patient Confirmation Modal -->
+                                                <div class="modal fade" id="deletePatientModal{{ patient.id }}" tabindex="-1" aria-labelledby="deletePatientModalLabel{{ patient.id }}" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-danger text-white">
+                                                                <h5 class="modal-title" id="deletePatientModalLabel{{ patient.id }}">Confirm Patient Deletion</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="alert alert-warning">
+                                                                    <i class="fas fa-exclamation-triangle"></i> Warning: This action cannot be undone!
+                                                                </div>
+                                                                <p>Are you sure you want to delete <strong>{{ patient.full_name }}</strong> (ID: {{ patient.patient_id }})? </p>
+                                                                <p>This will permanently delete the patient and <strong>ALL</strong> of their assessment records.</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <a href="{% url 'diabetes:delete_patient' patient.id %}" class="btn btn-danger">Delete Patient</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <h5>No patients found</h5>
+                                <p>You haven't added any patients yet.</p>
+                                {% if user.role == 'DOCTOR' %}
+                                <a href="{% url 'diabetes:assessment_form' %}" class="btn btn-primary">Add New Patient</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    
+                    {% else %}
+                        <!-- PATIENT DETAIL VIEW -->
+                        <div class="patient-info bg-light p-3 mb-4 rounded">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Patient ID:</strong> {{ patient.patient_id }}</p>
+                                    <p class="mb-1"><strong>Name:</strong> {{ patient.full_name }}</p>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <p class="mb-1"><strong>Added:</strong> {{ patient.date_added|date:"F d, Y" }}</p>
+                                    <a href="{% url 'diabetes:assessment_form' %}" class="btn btn-sm btn-primary">New Assessment</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if assessments %}
+                            <p>View assessment history for this patient below. Click on any assessment to see details.</p>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Result</th>
+                                            <th>Diabetes Type</th>
+                                            <th>Risk Level</th>
+                                            <th>Risk Score</th>
+                                            <th>BMI</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for assessment in assessments %}
+                                         <tr>
+                                            <td>{{ assessment.assessment_date|date:"F d, Y" }}</td>
+                                            <td>
+                                                <span class="badge {{ assessment.risk_badge_color }}">{{ assessment.diagnosis }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if assessment.diabetes_type == 'none' %}bg-success{% elif assessment.diabetes_type == 'prediabetes' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                    {{ assessment.diabetes_type|title }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if assessment.risk_level == 'Low' %}bg-success{% elif assessment.risk_level == 'Moderate' %}bg-warning text-dark{% elif assessment.risk_level == 'High' %}bg-orange{% else %}bg-danger{% endif %}">
+                                                    {{ assessment.risk_level }}
+                                                </span>
+                                            </td>
+                                            <td>{{ assessment.display_risk_score|floatformat:1 }}</td>
+                                            <td>{{ assessment.bmi|floatformat:1 }}</td>
+                                            <td>
+                                                <a href="{% url 'diabetes:assessment_result' assessment.assessment_obj.id %}" class="btn btn-sm btn-info">View</a>
+                                                <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ assessment.assessment_obj.id }}">Delete</a>
+                                                
+                                                <!-- Delete Confirmation Modal -->
+                                                <div class="modal fade" id="deleteModal{{ assessment.assessment_obj.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ assessment.assessment_obj.id }}" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-danger text-white">
+                                                                <h5 class="modal-title" id="deleteModalLabel{{ assessment.assessment_obj.id }}">Confirm Deletion</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                Are you sure you want to delete this assessment from {{ assessment.assessment_date|date:"F d, Y" }}?
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <a href="{% url 'diabetes:delete_assessment' assessment.assessment_obj.id %}" class="btn btn-danger">Delete</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <h5>No assessments found</h5>
+                                <p>This patient doesn't have any diabetes risk assessments yet.</p>
+                                {% if user.role == 'DOCTOR' %}
+                                <a href="{% url 'diabetes:assessment_form' %}" class="btn btn-primary">Create New Assessment</a>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Assessment functionality is only available to doctors.
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Add button to return to dashboard at the bottom -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-4">
+                <a href="{% url 'diabetes:dashboard' %}" class="btn btn-outline-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

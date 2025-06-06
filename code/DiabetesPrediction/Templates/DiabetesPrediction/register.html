@@ -1,0 +1,106 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Register - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create Account</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Account Information</h5>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.email.id_for_label }}">Email*</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.password1.id_for_label }}">Password*</label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.password1.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.password2.id_for_label }}">Confirm Password*</label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.password2.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Personal Information</h5>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                                    {{ form.first_name }}
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                                    {{ form.last_name }}
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth</label>
+                                    {{ form.date_of_birth }}
+                                </div>
+                                
+                                <h5 class="mt-4 mb-3">Health Information</h5>
+                                
+                                <div class="form-check mb-3">
+                                    {{ form.has_diabetes_history }}
+                                    <label class="form-check-label" for="{{ form.has_diabetes_history.id_for_label }}">
+                                        {{ form.has_diabetes_history.label }}
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    {{ form.has_family_diabetes_history }}
+                                    <label class="form-check-label" for="{{ form.has_family_diabetes_history.id_for_label }}">
+                                        {{ form.has_family_diabetes_history.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-block w-100">Register</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <p class="mb-0">Already have an account? <a href="{% url 'diabetes:login' %}">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,464 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block extra_js %}
+<script>
+    // Set BMI progress bar widths based on data-bmi attribute
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle BMI progress bars
+        const bmiProgressBars = document.querySelectorAll('.bmi-progress');
+        bmiProgressBars.forEach(function(bar) {
+            const bmiValue = parseInt(bar.getAttribute('data-bmi'));
+            // Cap at 100% for extremely high BMI values
+            const width = Math.min(bmiValue, 100) + '%';
+            bar.style.width = width;
+        });
+    });
+</script>
+{% endblock %}
+
+{% block title %}Assessment Results - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm bg-diabetes text-white">
+            <div class="card-body">
+                <h2 class="card-title">Diabetes Assessment Results</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="card-text mb-1"><strong>Patient:</strong> {{ patient.full_name }} (ID: {{ patient.patient_id }})</p>
+                        <p class="card-text">Assessment completed on {{ assessment_date }}</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <a href="{% url 'diabetes:assessment_history' %}?patient_id={{ patient.patient_id }}" class="btn btn-sm btn-outline-light">View Patient History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary-custom text-white">
+                <h4 class="mb-0">Summary</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Expert System Diagnosis</h5>
+                        {% if diagnosis == "diabetes" %}
+                            <h1 class="display-5 risk-high">Diabetes</h1>
+                        {% elif diagnosis == "prediabetes" %}
+                            <h1 class="display-5 risk-moderate">Prediabetes</h1>
+                        {% elif diagnosis == "high_risk" %}
+                            <h1 class="display-5 risk-high">High Risk</h1>
+                        {% elif diagnosis == "moderate_risk" %}
+                            <h1 class="display-5 risk-moderate">Moderate Risk</h1>
+                        {% elif diagnosis == "low_risk" %}
+                            <h1 class="display-5 risk-low">Low Risk</h1>
+                        {% else %}
+                            <h1 class="display-5 risk-low">Normal</h1>
+                        {% endif %}
+                        <p>Risk Score: {{ risk_score|floatformat:1 }}</p>
+                        
+                        {% if assessment.bmi %}
+                        <div class="mt-3">
+                            <h6>BMI: {{ bmi|floatformat:1 }} - {{ bmi_category }}</h6>
+                            <div class="progress">
+                                {% if bmi < 18.5 %}
+                                    <div class="progress-bar bg-info bmi-progress" role="progressbar" data-bmi="{{ bmi|floatformat:0 }}" aria-valuenow="{{ bmi|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {% elif bmi < 25 %}
+                                    <div class="progress-bar bg-success bmi-progress" role="progressbar" data-bmi="{{ bmi|floatformat:0 }}" aria-valuenow="{{ bmi|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {% elif bmi < 30 %}
+                                    <div class="progress-bar bg-warning bmi-progress" role="progressbar" data-bmi="{{ bmi|floatformat:0 }}" aria-valuenow="{{ bmi|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {% else %}
+                                    <div class="progress-bar bg-danger bmi-progress" role="progressbar" data-bmi="{{ bmi|floatformat:0 }}" aria-valuenow="{{ bmi|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5 class="border-bottom pb-2">Risk Assessment Explanation</h5>
+                        <ul class="list-unstyled">
+                            {% for explanation in expert_explanation %}
+                            <li class="mb-2">• {{ explanation }}</li>
+                            {% empty %}
+                            <li class="mb-2">• No detailed explanation available</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <p class="mb-0"><strong>Note:</strong> This assessment is generated by the Diabetes Prediction System based on clinical measurements and patient symptoms. While it provides valuable insights, it should not be considered a final medical diagnosis.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if recommendations.diet or recommendations.lifestyle or recommendations.medical %}
+        <div class="card recommendation-card mb-4">
+            <div class="card-header bg-primary-custom text-white">
+                <h5 class="mb-0">Recommendations</h5>
+            </div>
+            <div class="card-body">
+                {% if recommendations.diet %}
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2">Diet Recommendations</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">• Follow a balanced diet rich in whole grains, lean proteins, and healthy fats</li>
+                        <li class="mb-2">• Increase fiber intake through vegetables, fruits, and legumes</li>
+                        <li class="mb-2">• Limit intake of refined carbohydrates and sugary foods</li>
+                        <li class="mb-2">• Monitor portion sizes and practice mindful eating</li>
+                        <li class="mb-2">• Stay well-hydrated with water instead of sugary beverages</li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if recommendations.lifestyle %}
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2">Lifestyle Changes</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">• Aim for at least 150 minutes of moderate-intensity exercise per week</li>
+                        <li class="mb-2">• Include both aerobic activities and strength training exercises</li>
+                        <li class="mb-2">• Maintain a healthy weight or work towards weight loss if needed</li>
+                        <li class="mb-2">• Get adequate sleep (7-9 hours per night)</li>
+                        <li class="mb-2">• Practice stress management through relaxation techniques</li>
+                        <li class="mb-2">• Quit smoking and limit alcohol consumption</li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if recommendations.medical %}
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2">Medical Follow-up</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">• Schedule a follow-up appointment with your healthcare provider to discuss personalized diabetes prevention strategies</li>
+                        <li class="mb-2">• Get screened for diabetes every 6-12 months with an HbA1c or fasting glucose test</li>
+                        <li class="mb-2">• Have your blood pressure and cholesterol levels checked regularly</li>
+                        <li class="mb-2">• Discuss whether medications like metformin might be appropriate for diabetes prevention</li>
+                        <li class="mb-2">• Ask about referral to a CDC-recognized Diabetes Prevention Program</li>
+                        <li class="mb-2">• Consider consulting with a registered dietitian for personalized nutrition guidance</li>
+                        <li class="mb-2">• Your symptoms of excessive urination, thirst, or hunger should be discussed with a healthcare provider promptly</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if not recommendations.diet and not recommendations.activity and not recommendations.lifestyle and not recommendations.medical %}
+        <div class="card recommendation-card">
+            <div class="card-header bg-primary-custom text-white">
+                <h5 class="mb-0">General Recommendations</h5>
+            </div>
+            <div class="card-body">
+                {% if assessment.diet_recommendations %}
+                <div class="mb-3">
+                    <h6 class="card-subtitle mb-2 text-muted">Diet Recommendations</h6>
+                    <p>{{ assessment.diet_recommendations|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+                
+                {% if assessment.exercise_recommendations %}
+                <div class="mb-3">
+                    <h6 class="card-subtitle mb-2 text-muted">Activity Recommendations</h6>
+                    <p>{{ assessment.exercise_recommendations|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+                
+                {% if assessment.monitoring_recommendations %}
+                <div>
+                    <h6 class="card-subtitle mb-2 text-muted">Lifestyle & Medical Recommendations</h6>
+                    <p>{{ assessment.monitoring_recommendations|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+                
+                {% if not assessment.diet_recommendations and not assessment.exercise_recommendations and not assessment.monitoring_recommendations %}
+                <p>No recommendations available. Please consult with your healthcare provider for personalized recommendations.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary-custom text-white">
+                <h4 class="mb-0">Assessment Details</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="border-bottom pb-2">Clinical Measurements</h5>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th>BMI:</th>
+                                    <td>{% if assessment.bmi %}{{ assessment.bmi|floatformat:1 }}{% else %}Not provided{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Blood Glucose Level:</th>
+                                    <td>{% if assessment.fasting_glucose %}{{ assessment.fasting_glucose|floatformat:0 }} mg/dL{% else %}Not provided{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>HbA1c Level:</th>
+                                    <td>{% if assessment.hba1c %}{{ assessment.hba1c|floatformat:1 }}%{% else %}Not provided{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Hypertension:</th>
+                                    <td>{% if assessment.hypertension %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Heart Disease:</th>
+                                    <td>{% if assessment.heart_disease %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Smoking History:</th>
+                                    <td>{{ assessment.get_smoking_history_display }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5 class="border-bottom pb-2">Reported Symptoms</h5>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th>Excessive Thirst:</th>
+                                    <td>{% if assessment.polydipsia %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Frequent Urination:</th>
+                                    <td>{% if assessment.polyuria %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Unexplained Weight Loss:</th>
+                                    <td>{% if assessment.weight_loss %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fatigue:</th>
+                                    <td>{% if assessment.fatigue %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Blurred Vision:</th>
+                                    <td>{% if assessment.blurred_vision %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Slow Healing Sores:</th>
+                                    <td>{% if assessment.slow_healing %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Numbness/Tingling:</th>
+                                    <td>{% if assessment.tingling %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if diagnosis == "diabetes" and complication_risks %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary-custom text-white">
+                <h4 class="mb-0">Complication Risk Assessment</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if complication_risks.cardiovascular %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header {% if complication_risks.cardiovascular.risk_level == 'high' %}bg-danger text-white{% elif complication_risks.cardiovascular.risk_level == 'moderate' %}bg-warning{% else %}bg-success text-white{% endif %}">
+                                <h5 class="mb-0">Cardiovascular Complications</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Risk Level:</strong> {{ complication_risks.cardiovascular.risk_level|title }}</p>
+                                
+                                {% if complication_risks.cardiovascular.risk_factors %}
+                                <h6>Risk Factors Present:</h6>
+                                <ul>
+                                    {% for factor in complication_risks.cardiovascular.risk_factors %}
+                                    <li>{{ factor|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.cardiovascular.warning_signs %}
+                                <h6>Warning Signs Present:</h6>
+                                <ul>
+                                    {% for sign in complication_risks.cardiovascular.warning_signs %}
+                                    <li>{{ sign|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.cardiovascular.recommendations %}
+                                <h6>Recommendations:</h6>
+                                <ul>
+                                    {% for rec in complication_risks.cardiovascular.recommendations %}
+                                    <li>{{ rec }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if complication_risks.neuropathy %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header {% if complication_risks.neuropathy.risk_level == 'high' %}bg-danger text-white{% elif complication_risks.neuropathy.risk_level == 'moderate' %}bg-warning{% else %}bg-success text-white{% endif %}">
+                                <h5 class="mb-0">Neuropathy (Nerve Damage)</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Risk Level:</strong> {{ complication_risks.neuropathy.risk_level|title }}</p>
+                                
+                                {% if complication_risks.neuropathy.risk_factors %}
+                                <h6>Risk Factors Present:</h6>
+                                <ul>
+                                    {% for factor in complication_risks.neuropathy.risk_factors %}
+                                    <li>{{ factor|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.neuropathy.warning_signs %}
+                                <h6>Warning Signs Present:</h6>
+                                <ul>
+                                    {% for sign in complication_risks.neuropathy.warning_signs %}
+                                    <li>{{ sign|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.neuropathy.recommendations %}
+                                <h6>Recommendations:</h6>
+                                <ul>
+                                    {% for rec in complication_risks.neuropathy.recommendations %}
+                                    <li>{{ rec }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if complication_risks.nephropathy %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header {% if complication_risks.nephropathy.risk_level == 'high' %}bg-danger text-white{% elif complication_risks.nephropathy.risk_level == 'moderate' %}bg-warning{% else %}bg-success text-white{% endif %}">
+                                <h5 class="mb-0">Nephropathy (Kidney Disease)</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Risk Level:</strong> {{ complication_risks.nephropathy.risk_level|title }}</p>
+                                
+                                {% if complication_risks.nephropathy.risk_factors %}
+                                <h6>Risk Factors Present:</h6>
+                                <ul>
+                                    {% for factor in complication_risks.nephropathy.risk_factors %}
+                                    <li>{{ factor|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.nephropathy.warning_signs %}
+                                <h6>Warning Signs Present:</h6>
+                                <ul>
+                                    {% for sign in complication_risks.nephropathy.warning_signs %}
+                                    <li>{{ sign|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.nephropathy.recommendations %}
+                                <h6>Recommendations:</h6>
+                                <ul>
+                                    {% for rec in complication_risks.nephropathy.recommendations %}
+                                    <li>{{ rec }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if complication_risks.retinopathy %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header {% if complication_risks.retinopathy.risk_level == 'high' %}bg-danger text-white{% elif complication_risks.retinopathy.risk_level == 'moderate' %}bg-warning{% else %}bg-success text-white{% endif %}">
+                                <h5 class="mb-0">Retinopathy (Eye Disease)</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Risk Level:</strong> {{ complication_risks.retinopathy.risk_level|title }}</p>
+                                
+                                {% if complication_risks.retinopathy.risk_factors %}
+                                <h6>Risk Factors Present:</h6>
+                                <ul>
+                                    {% for factor in complication_risks.retinopathy.risk_factors %}
+                                    <li>{{ factor|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.retinopathy.warning_signs %}
+                                <h6>Warning Signs Present:</h6>
+                                <ul>
+                                    {% for sign in complication_risks.retinopathy.warning_signs %}
+                                    <li>{{ sign|title }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if complication_risks.retinopathy.recommendations %}
+                                <h6>Recommendations:</h6>
+                                <ul>
+                                    {% for rec in complication_risks.retinopathy.recommendations %}
+                                    <li>{{ rec }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <p class="mb-0"><strong>Important:</strong> This complication risk assessment is based on the information you provided and should not replace professional medical advice. Regular check-ups with healthcare providers are essential for diabetes management.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-4 mb-4">
+    <div class="col-md-12">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+            {% if user.role == 'DOCTOR' %}
+            <a href="{% url 'diabetes:assessment_form' %}" class="btn btn-primary me-md-2">New Assessment</a>
+            {% endif %}
+            <a href="{% url 'diabetes:assessment_history' %}" class="btn btn-secondary">View History</a>
+            <a href="{% url 'diabetes:dashboard' %}" class="btn btn-outline-primary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

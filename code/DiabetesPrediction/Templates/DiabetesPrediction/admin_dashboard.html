@@ -1,0 +1,522 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Admin Dashboard - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm bg-diabetes text-white">
+            <div class="card-body">
+                <h2 class="card-title">{{ user_role }} Dashboard</h2>
+                <p class="card-text">Manage system users and settings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if is_superadmin %}
+<!-- Admin Management Section (Only visible to Superadmin) -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary-custom text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Manage Administrators</h4>
+                <a href="{% url 'diabetes:admin_register' %}?type=admin" class="btn btn-light btn-sm">
+                    <i class="fas fa-user-plus"></i> Register New Admin
+                </a>
+            </div>
+            <div class="card-body">
+                {% if admin_users %}
+                    <div class="accordion" id="adminAccordion">
+                        {% for admin in admin_users %}
+                        <div class="accordion-item mb-3 border">
+                            <h2 class="accordion-header" id="heading{{ admin.id }}">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse{{ admin.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                                    aria-controls="collapse{{ admin.id }}">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ admin.get_full_name }}</strong> ({{ admin.email }}) 
+                                            <span class="badge bg-info">{{ admin.doctor_count }} Doctors</span>
+                                        </div>
+                                        <div class="small text-muted me-3">Joined: {{ admin.date_joined|date:"F d, Y" }}</div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ admin.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                                 aria-labelledby="heading{{ admin.id }}" data-bs-parent="#adminAccordion">
+                                <div class="accordion-body">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <h5>Admin Details</h5>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-danger delete-admin" data-admin-id="{{ admin.id }}">
+                                                <i class="fas fa-trash-alt"></i> Delete Admin
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <h5 class="mt-4">Doctors managed by {{ admin.get_full_name }}</h5>
+                                    {% if admin.managed_doctors %}
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Doctor Name</th>
+                                                        <th>Email</th>
+                                                        <th>Patients</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for doctor in admin.managed_doctors %}
+                                                    <tr>
+                                                        <td>{{ doctor.get_full_name }}</td>
+                                                        <td>{{ doctor.email }}</td>
+                                                        <td>{{ doctor.patient_count }}</td>
+                                                        <td>
+                                                            <div class="btn-group">
+                                                                <button type="button" class="btn btn-sm btn-primary assign-doctor" data-doctor-id="{{ doctor.id }}">
+                                                                    <i class="fas fa-exchange-alt"></i> Reassign
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-danger delete-doctor" data-doctor-id="{{ doctor.id }}">
+                                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                                </button>
+                                                            </div>
+                                                            
+                                                            <!-- Reassign Doctor Modal -->
+                                                            <div class="modal fade" id="reassignDoctorModal{{ doctor.id }}" tabindex="-1" 
+                                                                aria-labelledby="reassignDoctorModalLabel{{ doctor.id }}" aria-hidden="true">
+                                                                <div class="modal-dialog">
+                                                                    <div class="modal-content">
+                                                                        <div class="modal-header bg-primary text-white">
+                                                                            <h5 class="modal-title" id="reassignDoctorModalLabel{{ doctor.id }}">
+                                                                                Reassign Doctor
+                                                                            </h5>
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        </div>
+                                                                        <form action="{% url 'diabetes:reassign_doctor' doctor.id %}" method="post">
+                                                                            {% csrf_token %}
+                                                                            <div class="modal-body">
+                                                                                <p>Reassign <strong>{{ doctor.get_full_name }}</strong> to a different administrator:</p>
+                                                                                <div class="mb-3">
+                                                                                    <label for="newAdmin{{ doctor.id }}" class="form-label">Select Administrator</label>
+                                                                                    <select class="form-select" id="newAdmin{{ doctor.id }}" name="admin_id" required>
+                                                                                        <option value="">-- Select Administrator --</option>
+                                                                                        {% for other_admin in admin_users %}
+                                                                                            {% if other_admin.id != admin.id %}
+                                                                                            <option value="{{ other_admin.id }}">{{ other_admin.get_full_name }}</option>
+                                                                                            {% endif %}
+                                                                                        {% endfor %}
+                                                                                        <option value="null">No Administrator (Unassigned)</option>
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="modal-footer">
+                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                                <button type="submit" class="btn btn-primary">Reassign Doctor</button>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-info">
+                                            <p>No doctors assigned to this administrator.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Delete Admin Confirmation Modal -->
+                        <div class="modal fade" id="deleteAdminModal{{ admin.id }}" tabindex="-1" 
+                            aria-labelledby="deleteAdminModalLabel{{ admin.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title" id="deleteAdminModalLabel{{ admin.id }}">Confirm Admin Deletion</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i> Warning: This action cannot be undone!
+                                        </div>
+                                        <p>Are you sure you want to delete administrator <strong>{{ admin.get_full_name }}</strong>?</p>
+                                        <p>This will permanently delete the admin account and reassign all managed doctors as unassigned.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <a href="{% url 'diabetes:delete_user' admin.id %}" class="btn btn-danger">Delete Admin</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <h5>No administrators found</h5>
+                        <p>There are no administrator accounts in the system yet.</p>
+                        <a href="{% url 'diabetes:admin_register' %}?type=admin" class="btn btn-primary">Register New Admin</a>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Doctor Management Section -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm mb-4 border-0 hover-shadow">
+            <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center" style="border-radius: 0.5rem 0.5rem 0 0;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-md fa-2x me-2"></i>
+                    <h4 class="mb-0">Manage Doctors</h4>
+                </div>
+                <a href="{% url 'diabetes:admin_register' %}{% if is_superadmin %}?type=doctor{% endif %}" class="btn btn-light btn-sm hover-shadow">
+                    <i class="fas fa-user-plus"></i> Register New Doctor
+                </a>
+            </div>
+            <div class="card-body">
+                {% if doctor_users or unassigned_doctors %}
+                    {% if is_superadmin %}
+                    <!-- Unassigned Doctors Section -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 text-primary">
+                            <i class="fas fa-user-plus me-2"></i>Unassigned Doctors
+                        </h5>
+                        {% if unassigned_doctors %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Doctor Name</th>
+                                        <th>Email</th>
+                                        <th>Patients</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doctor in unassigned_doctors %}
+                                    <tr>
+                                        <td>{{ doctor.get_full_name }}</td>
+                                        <td>{{ doctor.email }}</td>
+                                        <td>{{ doctor.patient_count }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-primary assign-doctor" data-doctor-id="{{ doctor.id }}">
+                                                    <i class="fas fa-user-plus"></i> Assign
+                                                </button>
+                                                <button class="btn btn-sm btn-danger delete-doctor" data-doctor-id="{{ doctor.id }}">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info mb-4">
+                            <p class="mb-0">No unassigned doctors found.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if doctor_users %}
+                    <!-- Assigned Doctors Section -->
+                    <div class="table-responsive">
+                        <h5 class="border-bottom pb-2">Managed Doctors</h5>
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Name</th>
+
+                                    <th>Date Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in doctor_users %}
+                                <tr>
+                                    <td>{{ doctor.email }}</td>
+                                    <td>{{ doctor.get_full_name }}</td>
+
+                                    <td>{{ doctor.date_joined|date:"F d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'diabetes:patient_reassignment' %}?doctor_id={{ doctor.id }}" class="btn btn-sm btn-primary">Manage Patients</a>
+                                            <button type="button" class="btn btn-sm btn-danger delete-doctor" data-doctor-id="{{ doctor.id }}">Delete Doctor</button>
+                                        </div>
+                                        
+                                        <!-- Delete Doctor Confirmation Modal -->
+                                        <div class="modal fade" id="deleteDoctorModal{{ doctor.id }}" tabindex="-1" aria-labelledby="deleteDoctorModalLabel{{ doctor.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-danger text-white">
+                                                        <h5 class="modal-title" id="deleteDoctorModalLabel{{ doctor.id }}">Confirm Doctor Deletion</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="alert alert-warning">
+                                                            <i class="fas fa-exclamation-triangle me-2"></i> Warning: This action cannot be undone!
+                                                        </div>
+                                                        <p>Are you sure you want to delete doctor <strong>{{ doctor.get_full_name }}</strong> ({{ doctor.email }})?</p>
+                                                        <p>This will permanently delete the doctor account and <strong>ALL</strong> associated patient and assessment records.</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <a href="{% url 'diabetes:delete_user' doctor.id %}" class="btn btn-danger">Delete Doctor</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <h5>No doctors found</h5>
+                        <p>There are no doctor accounts in the system yet.</p>
+                        <a href="{% url 'diabetes:admin_register' %}{% if is_superadmin %}?type=doctor{% endif %}" class="btn btn-primary">Register New Doctor</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary-custom text-white">
+                <h4 class="mb-0">System Management</h4>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <!-- Model training functionality has been disabled as it's unnecessary in production -->
+                    <!-- Models are pre-trained during development for optimal performance and stability -->
+                    
+                    <a href="{% url 'diabetes:patient_reassignment' %}" class="list-group-item list-group-item-action">
+                        <h5 class="mb-1">Patient Reassignment</h5>
+                        <p class="mb-1">Transfer patients between doctors when requested.</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+{% csrf_token %}
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteConfirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Global Assign Doctor Modal -->
+<div class="modal fade" id="globalAssignDoctorModal" tabindex="-1" aria-labelledby="globalAssignDoctorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="globalAssignDoctorModalLabel">Assign Doctor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Assign <strong id="assignDoctorName"></strong> to:</p>
+                <form id="globalAssignDoctorForm" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <select class="form-control" name="admin_id" required>
+                            <option value="">-- Select Administrator --</option>
+                            {% for admin in admin_users %}
+                                <option value="{{ admin.id }}">{{ admin.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="globalAssignDoctorForm" class="btn btn-primary">Assign Doctor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize modals
+        const globalAssignModal = new bootstrap.Modal(document.getElementById('globalAssignDoctorModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+        
+        // Get elements for assign modal
+        const assignDoctorName = document.getElementById('assignDoctorName');
+        const globalAssignForm = document.getElementById('globalAssignDoctorForm');
+
+        // Handle assign doctor buttons
+        document.querySelectorAll('.assign-doctor').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const doctorId = this.getAttribute('data-doctor-id');
+                const doctorName = this.closest('tr').querySelector('td:first-child').textContent.trim();
+                
+                // Update form action
+                globalAssignForm.action = `{% url 'diabetes:reassign_doctor' 0 %}`.replace('0', doctorId);
+                
+                // Update modal content
+                assignDoctorName.textContent = `Dr. ${doctorName}`;
+                
+                // Show modal
+                globalAssignModal.show();
+            });
+        });
+
+        // Delete confirmation function
+        function showDeleteConfirmation(title, message, deleteUrl, onConfirm) {
+            const modal = document.getElementById('deleteConfirmationModal');
+            const deleteModal = new bootstrap.Modal(modal);
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            // Clear any previous error messages
+            const existingErrors = modal.querySelectorAll('.alert-danger');
+            existingErrors.forEach(err => err.remove());
+            
+            // Set modal title and message
+            modal.querySelector('.modal-title').textContent = title;
+            modal.querySelector('.modal-body p').textContent = message;
+            
+            // Remove any existing click handler
+            confirmBtn.onclick = null;
+            
+            // Add new click handler
+            confirmBtn.onclick = async function() {
+                try {
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const response = await fetch(deleteUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (!response.ok) {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const data = await response.json();
+                            throw new Error(data.error || 'Delete operation failed');
+                        } else {
+                            throw new Error('Server error: ' + response.status);
+                        }
+                    }
+
+                    const data = await response.json();
+                    
+                    // Hide modal
+                    deleteModal.hide();
+                    
+                    // Show success message
+                    if (data.message) {
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                        alertDiv.innerHTML = `
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        document.querySelector('.container').insertAdjacentElement('afterbegin', alertDiv);
+                    }
+                    
+                    // Call success callback
+                    if (onConfirm) onConfirm();
+                    
+                    // Reload page after a short delay
+                    setTimeout(() => window.location.reload(), 1000);
+                } catch (error) {
+                    console.error('Error:', error);
+                    // Show error in modal instead of alert
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger mt-3';
+                    errorDiv.textContent = error.message;
+                    modal.querySelector('.modal-body').appendChild(errorDiv);
+                }
+            };
+            
+            // Show the modal
+            deleteModal.show();
+        }
+
+        // Handle admin delete buttons
+        document.querySelectorAll('.delete-admin').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const adminId = this.getAttribute('data-admin-id');
+                const adminItem = this.closest('.accordion-item');
+                const adminName = adminItem.querySelector('h2 button').textContent.trim();
+                
+                showDeleteConfirmation(
+                    'Confirm Delete Administrator',
+                    `Are you sure you want to delete administrator ${adminName}?`,
+                    `{% url 'diabetes:delete_admin' 0 %}`.replace('0', adminId),
+                    () => adminItem.remove()
+                );
+            });
+        });
+
+        // Handle doctor delete buttons
+        document.querySelectorAll('.delete-doctor').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const doctorId = this.getAttribute('data-doctor-id');
+                const doctorRow = this.closest('tr');
+                const doctorName = doctorRow.querySelector('td:first-child').textContent.trim();
+                
+                showDeleteConfirmation(
+                    'Confirm Delete Doctor',
+                    `Are you sure you want to delete Dr. ${doctorName}? This action cannot be undone.`,
+                    `{% url 'diabetes:delete_doctor' 0 %}`.replace('0', doctorId),
+                    () => doctorRow.remove()
+                );
+            });
+        });
+    });
+</script>
+{% endblock %}

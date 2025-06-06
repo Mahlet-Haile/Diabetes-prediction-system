@@ -1,0 +1,106 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Patient Reassignment - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Doctor List Column -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Select Doctor</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for doctor in doctors %}
+                            <a href="{% url 'diabetes:patient_reassignment' %}?doctor_id={{ doctor.id }}" 
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center
+                               {% if selected_doctor.id == doctor.id %}active{% endif %}">
+                                <div>
+                                    <div class="fw-bold">Dr. {{ doctor.get_full_name }}</div>
+                                    <small class="text-muted">{{ doctor.email }}</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">{{ doctor.patient_count }} patients</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reassignment Form Column -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Patient Reassignment</h5>
+                    {% if selected_doctor %}
+                        <span class="badge bg-light text-primary">{{ selected_doctor.patient_count }} patients</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if selected_doctor %}
+                        {% if patients %}
+                            <form method="post" action="{% url 'diabetes:patient_reassignment' %}?doctor_id={{ selected_doctor.id }}">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.patient.id_for_label }}" class="form-label">Select Patient</label>
+                                        {{ form.patient }}
+                                        {% if form.patient.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.patient.errors|join:', ' }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="{{ form.new_doctor.id_for_label }}" class="form-label">Assign to Doctor</label>
+                                        {{ form.new_doctor }}
+                                        {% if form.new_doctor.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.new_doctor.errors|join:', ' }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="{{ form.reason.id_for_label }}" class="form-label">Reason for Reassignment</label>
+                                        {{ form.reason }}
+                                        {% if form.reason.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.reason.errors|join:', ' }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Please provide a brief explanation for the reassignment.</div>
+                                    </div>
+
+                                    <div class="col-12 mt-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{% url 'diabetes:admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                                            <button type="submit" class="btn btn-primary">Reassign Patient</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Dr. {{ selected_doctor.get_full_name }} currently has no patients assigned.
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-arrow-left-circle me-2"></i>
+                            Please select a doctor from the list to begin the reassignment process.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

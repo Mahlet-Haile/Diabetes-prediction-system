@@ -1,0 +1,156 @@
+/* Custom CSS for Diabetes Prediction System */
+
+/* Color scheme */
+:root {
+    --primary-color: #3066BE;
+    --secondary-color: #5D9BF0;
+    --accent-color: #60A561;
+    --warning-color: #F9A826;
+    --danger-color: #E74C3C;
+    --light-color: #F8F9FA;
+    --dark-color: #343A40;
+}
+
+/* Typography */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Cards and sections */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border: none;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+    font-weight: bold;
+}
+
+.bg-diabetes {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+}
+
+/* Custom sections */
+.measured-section {
+    background-color: #f0f7f4;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 5px solid var(--accent-color);
+}
+
+.symptom-section {
+    background-color: #f1f8fe;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 5px solid var(--primary-color);
+}
+
+/* Form elements */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(48, 102, 190, 0.25);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #255aa1;
+    border-color: #255aa1;
+}
+
+/* Risk levels */
+.risk-low {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.risk-moderate {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.risk-high {
+    color: #fd7e14;
+    font-weight: bold;
+}
+
+.risk-very-high {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Tables */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(93, 155, 240, 0.1);
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+.footer a {
+    color: #ddd;
+}
+
+.footer a:hover {
+    color: white;
+    text-decoration: none;
+}

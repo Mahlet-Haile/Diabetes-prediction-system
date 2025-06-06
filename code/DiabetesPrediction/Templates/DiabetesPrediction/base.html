@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Diabetes Prediction System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #3066BE;
+            --secondary-color: #5D9BF0;
+            --bg-light: #f8f9fa;
+            --section-padding: 1rem;
+            --modal-z-index: 9999;
+        }
+
+        /* Modal styles */
+        #deleteConfirmModal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: var(--modal-z-index) !important;
+            display: none;
+            outline: 0;
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+
+        #deleteConfirmModal.show {
+            display: block !important;
+        }
+
+        #deleteConfirmModal .modal-dialog {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            margin: 0 !important;
+            z-index: calc(var(--modal-z-index) + 1) !important;
+            width: auto !important;
+            pointer-events: all !important;
+        }
+
+        #deleteConfirmModal .modal-content {
+            box-shadow: 0 5px 15px rgba(0,0,0,.5) !important;
+            border: 1px solid rgba(0,0,0,.2) !important;
+            border-radius: 6px !important;
+            outline: 0 !important;
+            background: white !important;
+        }
+
+        #deleteConfirmModal .modal-backdrop {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #000 !important;
+            z-index: calc(var(--modal-z-index) - 1) !important;
+            opacity: 0.5 !important;
+        }
+
+        /* Base styles */
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Responsive container */
+        .container {
+            width: 100%;
+            padding: 1.5rem;
+            margin-right: auto;
+            margin-left: auto;
+            max-width: 1200px;
+        }
+
+        /* Content wrapper */
+        .content-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Card styles */
+        .card {
+            margin-bottom: 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            font-weight: bold;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0.5rem 0.5rem 0 0;
+            padding: 0.75rem 1rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        /* Table styles */
+        .table > :not(caption) > * > * {
+            padding: 0.5rem;
+        }
+
+        /* Accordion styles */
+        .accordion-button {
+            padding: 0.75rem 1rem;
+        }
+
+        .accordion-body {
+            padding: 1rem;
+        }
+
+        /* Form controls */
+        .form-control {
+            max-width: 100%;
+        }
+
+        /* Risk indicators */
+        .risk-low { color: #28a745; }
+        .risk-moderate { color: #ffc107; }
+        .risk-high { color: #fd7e14; }
+        .risk-very-high { color: #dc3545; }
+
+        /* Sections */
+        .symptom-section, .measured-section {
+            background-color: #fff;
+            border-radius: 0.625rem;
+            padding: var(--section-padding);
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Responsive tables */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Responsive images */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Responsive typography */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.75rem; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.25rem; }
+            .container { padding: 0.5rem; }
+        }
+
+        /* Navigation improvements */
+        .navbar {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color) !important;
+        }
+
+        .navbar-brand {
+            font-size: 1.25rem;
+            padding: 0.5rem 0;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            padding: 1rem 0;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .recommendation-card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #3066BE 0%, #5D9BF0 100%);
+            color: white;
+        }
+        
+        .hover-shadow {
+            transition: all 0.3s ease;
+        }
+        
+        .hover-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+        }
+        
+        .feature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+        }
+        
+        .bg-diabetes {
+            background: linear-gradient(135deg, #3066BE 0%, #5D9BF0 100%);
+            color: white;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-diabetes">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'diabetes:index' %}">
+                Diabetes Prediction System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'diabetes:index' %}">Home</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'diabetes:dashboard' %}">Dashboard</a>
+                    </li>
+                    {% if user.role == 'DOCTOR' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'diabetes:assessment_form' %}">Start New Assessment</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'diabetes:assessment_history' %}">History</a>
+                    </li>
+                    {% endif %}
+                    {% if user.is_staff %}
+                    {% if user.role == 'SUPERADMIN' %}
+                        <a class="nav-link dropdown-toggle" href="#" id="registerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Register Users
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="registerDropdown">
+                            <li><a class="dropdown-item" href="{% url 'diabetes:admin_register' %}?type=admin">Register Administrator</a></li>
+                            <li><a class="dropdown-item" href="{% url 'diabetes:admin_register' %}?type=doctor">Register Doctor</a></li>
+                        </ul>
+                        {% elif user.role == 'ADMIN' %}
+                        <a class="nav-link" href="{% url 'diabetes:admin_register' %}">Register Doctor</a>
+                        {% endif %}
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Welcome, {{ user.get_short_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'diabetes:dashboard' %}">My Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'diabetes:user_profile' %}"><i class="fas fa-user-cog"></i> My Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'diabetes:logout' %}">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'diabetes:login' %}">Login</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="content-wrapper">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Global Delete Confirmation Modal -->
+    <div class="modal" id="deleteConfirmModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteConfirmMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container text-center">
+            <p>Diabetes Prediction System &copy; 2025</p>
+            <p class="small">This clinical decision support system is designed to assist healthcare providers. Final medical decisions remain the responsibility of the healthcare provider.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Global Modal Instance -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize modal once
+            const modalElement = document.getElementById('deleteConfirmModal');
+            if (modalElement) {
+                window.deleteModal = new bootstrap.Modal(modalElement, {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+
+                // Clean up modal when hidden
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                    document.getElementById('deleteConfirmMessage').textContent = '';
+                    document.getElementById('deleteForm').action = '';
+                });
+
+                // Prevent modal from being dragged
+                modalElement.addEventListener('mousedown', function(e) {
+                    if (e.target === modalElement) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <!-- Custom JS -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

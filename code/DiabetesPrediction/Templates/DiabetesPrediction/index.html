@@ -1,0 +1,179 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Home - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+{% if not user.is_authenticated %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5 text-center">
+                <h1 class="display-5 fw-bold mb-4">Diabetes Prediction System</h1>
+                <p class="lead mb-4">
+                    A clinical decision support system for healthcare providers.
+                </p>
+                <hr class="my-4">
+                <p class="mb-4">
+                    Please log in to access the system.
+                </p>
+                <a href="{% url 'diabetes:login' %}" class="btn btn-primary btn-lg">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    {% if user.role == 'DOCTOR' %}
+                    <div class="container-fluid p-0">
+                        <!-- Hero Section -->
+                        <div class="bg-gradient-primary text-white py-5 px-4 mb-4 rounded-3 shadow-sm">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8">
+                                    <h2 class="h3 fw-bold mb-3">Welcome, Dr. {{ user.get_full_name }}</h2>
+                                    <p class="lead mb-4">Use our advanced system to assess your patients' diabetes risk and get clinical insights.</p>
+                                    <a href="{% url 'diabetes:assessment_form' %}" class="btn btn-light btn-lg px-4 me-md-2 fw-bold hover-shadow">
+                                        <i class="fas fa-plus-circle me-2"></i>Start New Assessment
+                                    </a>
+                                </div>
+                                <div class="col-lg-4 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-stethoscope fa-6x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Clinical Information -->
+                        <div class="container" style="max-width: 900px;">
+                            <div class="row g-4">
+                                <!-- Quick Actions Card -->
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm hover-shadow h-100">
+                                        <div class="card-body">
+                                            <h4 class="card-title mb-4">
+                                                <i class="fas fa-clipboard-check text-primary me-2"></i>Quick Actions
+                                            </h4>
+                                            <div class="list-group list-group-flush">
+                                                <a href="{% url 'diabetes:assessment_form' %}" class="list-group-item list-group-item-action border-0">
+                                                    <i class="fas fa-plus-circle text-success me-2"></i>New Assessment
+                                                </a>
+                                                <a href="{% url 'diabetes:assessment_history' %}" class="list-group-item list-group-item-action border-0">
+                                                    <i class="fas fa-history text-primary me-2"></i>View History
+                                                </a>
+                                                <a href="{% url 'diabetes:dashboard' %}" class="list-group-item list-group-item-action border-0">
+                                                    <i class="fas fa-chart-line text-info me-2"></i>Dashboard
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- System Features -->
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm hover-shadow h-100">
+                                        <div class="card-body">
+                                            <h4 class="card-title mb-4">
+                                                <i class="fas fa-star text-primary me-2"></i>Key Features
+                                            </h4>
+                                            <ul class="list-unstyled">
+                                                <li class="mb-3">
+                                                    <i class="fas fa-robot text-success me-2"></i>
+                                                    <strong>NHANES Model</strong>
+                                                    <p class="text-muted small ms-4 mb-0">Evidence-based diabetes prediction</p>
+                                                </li>
+                                                <li class="mb-3">
+                                                    <i class="fas fa-brain text-warning me-2"></i>
+                                                    <strong>Expert System</strong>
+                                                    <p class="text-muted small ms-4 mb-0">Clinical decision support</p>
+                                                </li>
+                                                <li class="mb-3">
+                                                    <i class="fas fa-chart-bar text-info me-2"></i>
+                                                    <strong>Risk Analysis</strong>
+                                                    <p class="text-muted small ms-4 mb-0">Comprehensive risk evaluation</p>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- How It Works Section -->
+                        <div class="container" style="max-width: 900px;">
+                            <h3 class="text-center mb-4">How It Works</h3>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm hover-shadow h-100">
+                                        <div class="card-body text-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                                <i class="fas fa-user-md text-primary fa-2x"></i>
+                                            </div>
+                                            <h5>1. Enter Patient Data</h5>
+                                            <p class="text-muted small">Input clinical measurements and patient history in our streamlined form.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm hover-shadow h-100">
+                                        <div class="card-body text-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                                <i class="fas fa-chart-line text-primary fa-2x"></i>
+                                            </div>
+                                            <h5>2. Get Risk Analysis</h5>
+                                            <p class="text-muted small">Our ML model analyzes data to determine diabetes risk level.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm hover-shadow h-100">
+                                        <div class="card-body text-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                                <i class="fas fa-clipboard-list text-primary fa-2x"></i>
+                                            </div>
+                                            <h5>3. Review Results</h5>
+                                            <p class="text-muted small">Get evidence-based recommendations and clinical insights.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Call to Action -->
+                        <div class="container mt-5">
+                            <div class="text-center">
+                                <p class="lead mb-4">Ready to assess your patient's diabetes risk?</p>
+                                <a href="{% url 'diabetes:assessment_form' %}" class="btn btn-primary btn-lg px-5 py-3 fw-bold">
+                                    <i class="fas fa-plus-circle me-2"></i>Start Patient Assessment
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Clinical Note -->
+                        <div class="container mt-5 mb-4">
+                            <div class="card bg-light border-0">
+                                <div class="card-body p-4">
+                                    <h4 class="card-title text-center mb-4">Important Note</h4>
+                                    <p class="card-text text-muted small text-center mb-0">
+                                        This system is designed to assist healthcare providers in assessing diabetes risk. All recommendations should be considered alongside your clinical judgment and the patient's complete medical history.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-md-12 p-5 text-center">
+                        <h1 class="display-5 fw-bold mb-4">Welcome, {{ user.get_full_name }}</h1>
+                        <p class="lead mb-4">
+                            You are logged in as {{ user.role|lower }}. Please use the navigation menu to access your dashboard and manage the system.
+                        </p>
+                        <a href="{% url 'diabetes:admin_dashboard' %}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

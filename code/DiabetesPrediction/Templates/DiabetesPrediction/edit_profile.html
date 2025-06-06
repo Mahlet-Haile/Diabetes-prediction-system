@@ -1,0 +1,94 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Edit Profile - Diabetes Prediction System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary-custom text-white">
+                    <h4 class="mb-0">Edit Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center mb-4">
+                                <div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px; font-size: 60px; color: #6c757d;">
+                                    {{ user.get_short_name|first|upper }}
+                                </div>
+                            </div>
+                            <div class="list-group mb-4">
+                                <a href="{% url 'diabetes:user_profile' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-user"></i> View Profile
+                                </a>
+                                <a href="{% url 'diabetes:change_password' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-key"></i> Change Password
+                                </a>
+                                <a href="{% url 'diabetes:dashboard' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <h5 class="border-bottom pb-2 mb-4">Account Information</h5>
+                                
+                                <div class="mb-3 row">
+                                    <label for="{{ form.email.id_for_label }}" class="col-sm-3 col-form-label">Email:</label>
+                                    <div class="col-sm-9">
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="text-danger">{{ form.email.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text text-muted">Email cannot be changed. Contact administrator if you need to update your email.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 row">
+                                    <label for="{{ form.first_name.id_for_label }}" class="col-sm-3 col-form-label">First Name:</label>
+                                    <div class="col-sm-9">
+                                        {{ form.first_name }}
+                                        {% if form.first_name.errors %}
+                                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 row">
+                                    <label for="{{ form.last_name.id_for_label }}" class="col-sm-3 col-form-label">Last Name:</label>
+                                    <div class="col-sm-9">
+                                        {{ form.last_name }}
+                                        {% if form.last_name.errors %}
+                                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 row">
+                                    <label for="{{ form.date_of_birth.id_for_label }}" class="col-sm-3 col-form-label">Date of Birth:</label>
+                                    <div class="col-sm-9">
+                                        {{ form.date_of_birth }}
+                                        {% if form.date_of_birth.errors %}
+                                            <div class="text-danger">{{ form.date_of_birth.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+
+                                
+                                <div class="mt-4 text-end">
+                                    <a href="{% url 'diabetes:user_profile' %}" class="btn btn-secondary me-2">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

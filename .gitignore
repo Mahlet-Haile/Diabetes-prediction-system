@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Virtual Environment
+venv/
+env/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Large files
+*.h5
+*.pkl
+*.joblib
+*.csv
+*.npy
+*.npz
+
+# Project specific
+code/DiabetesPrediction/saved_models/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Executables
+*.exe
+*.dll
+*.so
+*.pyd
+*.lib
+*.a
+*.o
+*.obj
+*.dylib
+*.whl

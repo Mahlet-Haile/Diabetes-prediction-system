@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800px" height="600px" viewBox="0 0 800 600" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background shape -->
+        <path d="M400,500 C600,500 700,400 750,250 C800,100 750,0 400,0 C50,0 0,100 50,250 C100,400 200,500 400,500 Z" fill="#E3F2FD" fill-rule="nonzero"/>
+        
+        <!-- Doctor icon -->
+        <g transform="translate(300,150)">
+            <!-- Head -->
+            <circle cx="100" cy="70" r="60" fill="#2196F3"/>
+            <!-- Body -->
+            <path d="M40,140 L160,140 L180,400 L20,400 Z" fill="#2196F3"/>
+            <!-- Stethoscope -->
+            <path d="M70,180 C30,200 20,220 20,250 C20,280 40,290 60,290 C80,290 100,280 100,250 C100,220 90,200 70,180" stroke="#FFFFFF" stroke-width="8" fill="none"/>
+            <circle cx="60" cy="290" r="15" fill="#FFFFFF"/>
+        </g>
+        
+        <!-- Medical symbols -->
+        <g transform="translate(500,200)">
+            <!-- Plus symbol -->
+            <rect x="0" y="40" width="20" height="120" fill="#90CAF9"/>
+            <rect x="-50" y="90" width="120" height="20" fill="#90CAF9"/>
+            <!-- Heart rate line -->
+            <path d="M-100,200 L-80,200 L-60,160 L-40,240 L-20,180 L0,200 L20,200" stroke="#90CAF9" stroke-width="4" fill="none"/>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,100 @@
+{% extends 'DiabetesPrediction/base.html' %}
+
+{% block title %}Login - Diabetes Prediction System{% endblock %}
+
+{% block extra_js %}
+<script>
+// Force reload on back/forward navigation to get fresh CSRF token
+document.addEventListener("DOMContentLoaded", function() {
+    // Get the form element
+    var form = document.querySelector("form");
+    
+    // Force page reload when accessed via back/forward navigation
+    if (performance && performance.navigation && performance.navigation.type === 2) {
+        console.log("Detected back/forward navigation, reloading page");
+        location.reload(true);
+    }
+    
+    // Listen for pageshow event (triggers when page is shown from bfcache)
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            console.log("Page was restored from bfcache, reloading");
+            location.reload(true);
+        }
+    });
+    
+    // Add form submission event handler
+    if (form) {
+        form.addEventListener("submit", function(e) {
+            // Store the form values in sessionStorage
+            var emailField = document.querySelector('input[name="username"]');
+            if (emailField) {
+                sessionStorage.setItem('lastEmail', emailField.value);
+            }
+        });
+    }
+    
+    // Restore form values if they exist in sessionStorage
+    var emailField = document.querySelector('input[name="username"]');
+    var lastEmail = sessionStorage.getItem('lastEmail');
+    if (emailField && lastEmail) {
+        emailField.value = lastEmail;
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Login</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.username.id_for_label }}">Email</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.password.id_for_label }}">Password</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-block w-100">Login</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Card footer with registration link removed -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
